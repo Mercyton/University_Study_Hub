@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix learnloop-app run dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
+    "lucide-react": "^1.42.0",
+    "pdfjs-dist": "^6.3.289"
+  }
+}

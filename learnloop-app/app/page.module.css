@@ -1,0 +1,289 @@
+.homePage {
+  min-height: 100vh;
+  color: #f1f5f9;
+  background-color: #020617;
+  background-image: linear-gradient(rgba(2, 6, 23, 0.72), rgba(2, 6, 23, 0.72)), url('/study_hub_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+}
+
+.homePage::before {
+  content: "";
+  position: absolute;
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  
+  /* This creates the blur effect over the background image */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); 
+  
+  /* Ensures it doesn't block clicks to links/buttons */
+  pointer-events: none; 
+}
+
+.container {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #1e293b;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.styles.heroDescription {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Optional: adds a subtle shadow for better readability */
+}
+
+.brandGroup,
+.headerLinks,
+.logo,
+.featureIcon,
+.primaryAction,
+.secondaryAction,
+.accessLabel,
+.featureCard {
+  display: flex;
+  align-items: center;
+}
+
+.brandGroup,
+.headerLinks,
+.primaryAction,
+.secondaryAction,
+.accessLabel {
+  gap: 0.75rem;
+}
+
+.logo {
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: #a3e635;
+  color: #020617;
+  font-weight: 700;
+}
+
+.eyebrow,
+.accessEyebrow {
+  margin: 0;
+  color: #84cc16;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.brandEyebrow {
+  color: #64748b;
+}
+
+.brandName {
+  margin: 0.15rem 0 0;
+  color: #f1f5f9;
+  font-size: 1.5rem;
+  font-weight: 300;
+  font-weight: 600;
+}
+
+.headerLink,
+.secondaryAction {
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+.headerLink,
+.loginAction,
+.secondaryAction {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.headerLink:hover,
+.secondaryAction:hover {
+  color: #fff;
+}
+
+.loginAction,
+.secondaryAction {
+  padding: 0.5rem 1rem;
+  border: 1px solid #334155;
+  border-radius: 0.5rem;
+  color: #f1f5f9;
+  text-decoration: none;
+}
+
+.loginAction:hover,
+.secondaryAction:hover {
+  border-color: #64748b;
+}
+
+.primaryAction {
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  background: #a3e635;
+  color: #020617;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+
+.primaryAction:hover {
+  background: #bef264;
+}
+
+.actionIcon,
+.featureIconSvg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.hero {
+  display: grid;
+  gap: 2.5rem;
+  align-items: center;
+  margin-top: 3rem;
+}
+
+.heroTitle {
+  max-width: 42rem;
+  margin: 1rem 0 0;
+  color: #f8fafc;
+  font-size: clamp(2.25rem, 5vw, 3rem);
+  font-weight: 400;
+  line-height: 1.1;
+  /* Optional: adds a subtle shadow for better readability */
+}
+
+.heroDescription {
+  max-width: 36rem;
+  margin: 1.25rem 0 0;
+  color: #cbd5e1;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.accessCard,
+.featureCard {
+  border: 1px solid #1e293b;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.accessCard {
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(2, 6, 23, 0.4);
+}
+
+.accessInner {
+  padding: 1.25rem;
+  border: 1px solid #1e293b;
+  border-radius: 1rem;
+  background: rgba(2, 6, 23, 0.9);
+}
+
+.accessSteps {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.step {
+  padding: 1rem;
+  border: 1px solid #1e293b;
+  border-radius: 0.75rem;
+  background: #0f172a;
+}
+
+.stepTitle,
+.stepDescription,
+.featureTitle,
+.featureDescription {
+  margin: 0;
+}
+
+.stepTitle {
+  color: #f1f5f9;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.stepDescription,
+.featureDescription {
+  margin-top: 0.25rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.features {
+  display: grid;
+  gap: 1rem;
+  margin-top: 4rem;
+}
+
+.featureCard {
+  display: block;
+  padding: 1.25rem;
+  border-radius: 1rem;
+}
+
+.featureIcon {
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: 1rem;
+  border-radius: 0.75rem;
+  background: rgba(163, 230, 53, 0.1);
+  color: #a3e635;
+}
+
+.featureTitle {
+  color: #f1f5f9;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .features {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-right: 2rem;
+    padding-left: 2rem;
+  }
+
+  .hero {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}

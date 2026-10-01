@@ -1,0 +1,72 @@
+.footer {
+  background-color: #0f172a; /* Dark background matching your hero */
+  color: #e2e8f0;
+  padding: 3rem 0 1.5rem 0;
+  margin-top: auto; /* Pushes footer to bottom if page is short */
+  border-top: 1px solid #1e293b;
+}
+
+.container {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.footerContent {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.companyInfo {
+  max-width: 300px;
+}
+
+.brandName {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.description {
+  color: #94a3b8;
+  line-height: 1.5;
+  font-size: 0.9rem;
+  text-shadow: #64748b 0px 2px 4px;
+}
+
+.linksSection h4 {
+  color: #fff;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.linkList {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.linkList a {
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.linkList a:hover {
+  color: #84cc16; /* Your neon green accent color */
+}
+
+.copyrightBar {
+  border-top: 1px solid #1e293b;
+  padding-top: 1.5rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.85rem;
+}
