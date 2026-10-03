@@ -1,32 +1,27 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Upload, FileUp, CheckCircle, Plus, BookCopy, FolderOpen, AlertCircle, Pencil, Trash2, Save, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Upload, FileUp, CheckCircle, Plus, BookCopy, AlertCircle, Pencil, Trash2, Save, X, Search, UserPlus } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { filterCourses } from '@/lib/filterCourses';
 
-type Program = {
-  id: string;
-  name: string;
-};
-
-type Subject = { id: string; name: string; program_id: string };
+type Subject = { id: string; name: string };
 type ExamCategory = { id: string; name: string };
 
 export default function AdminUploadPage() {
-  const [programs, setPrograms] = useState<Program[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [courseSearch, setCourseSearch] = useState('');
   const [categories, setCategories] = useState<ExamCategory[]>([]);
-  const [programName, setProgramName] = useState('');
   const [courseName, setCourseName] = useState('');
-  const [selectedProgramId, setSelectedProgramId] = useState('');
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [managementMessage, setManagementMessage] = useState('');
   const [managementError, setManagementError] = useState(false);
-  const [isSavingProgram, setIsSavingProgram] = useState(false);
+  const [administratorEmail, setAdministratorEmail] = useState('');
+  const [administratorMessage, setAdministratorMessage] = useState('');
+  const [administratorError, setAdministratorError] = useState(false);
+  const [isGrantingAdministrator, setIsGrantingAdministrator] = useState(false);
   const [isSavingCourse, setIsSavingCourse] = useState(false);
-  const [editingProgramId, setEditingProgramId] = useState('');
-  const [editingProgramName, setEditingProgramName] = useState('');
   const [editingSubjectId, setEditingSubjectId] = useState('');
   const [editingSubjectName, setEditingSubjectName] = useState('');
   const [savingItemId, setSavingItemId] = useState('');
@@ -36,40 +31,55 @@ export default function AdminUploadPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const filteredSubjects = filterCourses(subjects, courseSearch);
 
-  const selectedProgram = useMemo(
-    () => programs.find((program) => program.id === selectedProgramId) ?? programs[0],
-    [programs, selectedProgramId],
-  );
+  const handleAddAdministrator = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setAdministratorMessage('');
+    setIsGrantingAdministrator(true);
+
+    try {
+      const response = await fetch('/api/admin/administrators', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: administratorEmail.trim() }),
+      });
+      const result = await response.json();
+
+      if (!response.ok) {
+        setAdministratorMessage(result.error ?? 'Unable to authorize this email.');
+        setAdministratorError(true);
+        return;
+      }
+
+      setAdministratorEmail('');
+      setAdministratorMessage('Admin access authorized. They can now sign up or sign in with this email.');
+      setAdministratorError(false);
+    } catch {
+      setAdministratorMessage('Unable to reach the server. Please try again.');
+      setAdministratorError(true);
+    } finally {
+      setIsGrantingAdministrator(false);
+    }
+  };
 
   useEffect(() => {
     const loadUploadOptions = async () => {
-      const [programResult, subjectResult, categoryResult] = await Promise.all([
-        supabase.from('programs').select('id, name').order('name'),
-        supabase.from('subjects').select('id, name, program_id').order('name'),
+      const [subjectResult, categoryResult] = await Promise.all([
+        supabase.from('subjects').select('id, name').order('name'),
         supabase.from('exam_categories').select('id, name'),
       ]);
 
-      const loadError = programResult.error ?? subjectResult.error ?? categoryResult.error;
+      const loadError = subjectResult.error ?? categoryResult.error;
       if (loadError) {
         setManagementMessage(loadError.message);
         setManagementError(true);
         return;
       }
 
-      const normalizedSubjects = (subjectResult.data ?? []).map((subject) => ({
-        ...subject,
-        id: String(subject.id),
-        program_id: String(subject.program_id),
-      }));
-      const programData = programResult.data ?? [];
+      const normalizedSubjects = (subjectResult.data ?? []).map((subject) => ({ ...subject, id: String(subject.id) }));
       setSubjects(normalizedSubjects);
-      setPrograms(programData.map((program) => ({
-        ...program,
-        id: String(program.id),
-      })));
-      setSelectedProgramId(String(programData[0]?.id ?? ''));
-      setSelectedSubjectId(normalizedSubjects.find((subject) => subject.program_id === String(programData[0]?.id ?? ''))?.id ?? '');
+      setSelectedSubjectId(normalizedSubjects[0]?.id ?? '');
       setCategories(categoryResult.data ?? []);
       setSelectedCategoryId(String(categoryResult.data?.[0]?.id ?? ''));
     };
@@ -77,46 +87,17 @@ export default function AdminUploadPage() {
     void loadUploadOptions();
   }, []);
 
-  const handleAddProgram = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const name = programName.trim();
-    if (!name) return;
-
-    setManagementMessage('');
-    setIsSavingProgram(true);
-    const { data, error } = await supabase
-      .from('programs')
-      .insert({ name })
-      .select('id, name')
-      .single();
-    setIsSavingProgram(false);
-
-    if (error) {
-      setManagementMessage(error.message);
-      setManagementError(true);
-      return;
-    }
-
-    const newProgram = { id: String(data.id), name: data.name };
-    setPrograms((current) => [...current, newProgram]);
-    setSelectedProgramId(newProgram.id);
-    setSelectedSubjectId('');
-    setProgramName('');
-    setManagementMessage('Program added.');
-    setManagementError(false);
-  };
-
   const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     const name = courseName.trim();
-    if (!name || !selectedProgramId) return;
+    if (!name) return;
 
     setManagementMessage('');
     setIsSavingCourse(true);
     const { data, error } = await supabase
       .from('subjects')
-      .insert({ name, program_id: selectedProgramId })
-      .select('id, name, program_id')
+      .insert({ name })
+      .select('id, name')
       .single();
     setIsSavingCourse(false);
 
@@ -126,69 +107,12 @@ export default function AdminUploadPage() {
       return;
     }
 
-    const newSubject = { ...data, id: String(data.id), program_id: String(data.program_id) };
-    setSubjects((current) => [...current, newSubject]);
+    const newSubject = { ...data, id: String(data.id) };
+    setSubjects((current) => [...current, newSubject].sort((left, right) => left.name.localeCompare(right.name)));
     setSelectedSubjectId(newSubject.id);
 
     setCourseName('');
     setManagementMessage('Course added.');
-    setManagementError(false);
-  };
-
-  const handleUpdateProgram = async (programId: string) => {
-    const name = editingProgramName.trim();
-    if (!name) return;
-
-    setSavingItemId(programId);
-    setManagementMessage('');
-    const { data, error } = await supabase
-      .from('programs')
-      .update({ name })
-      .eq('id', programId)
-      .select('id, name')
-      .single();
-    setSavingItemId('');
-
-    if (error) {
-      setManagementMessage(error.message);
-      setManagementError(true);
-      return;
-    }
-
-    setPrograms((current) => current.map((program) => (
-      program.id === programId ? { ...program, name: data.name } : program
-    )));
-    setEditingProgramId('');
-    setManagementMessage('Program updated.');
-    setManagementError(false);
-  };
-
-  const handleDeleteProgram = async (program: Program) => {
-    if (!window.confirm(`Delete program "${program.name}"? Linked courses or papers may prevent deletion.`)) return;
-
-    setSavingItemId(program.id);
-    setManagementMessage('');
-    const { error } = await supabase
-      .from('programs')
-      .delete()
-      .eq('id', program.id)
-      .select('id')
-      .single();
-    setSavingItemId('');
-
-    if (error) {
-      setManagementMessage(error.message);
-      setManagementError(true);
-      return;
-    }
-
-    setPrograms((current) => current.filter((item) => item.id !== program.id));
-    setSubjects((current) => current.filter((subject) => subject.program_id !== program.id));
-    if (selectedProgramId === program.id) {
-      setSelectedProgramId('');
-      setSelectedSubjectId('');
-    }
-    setManagementMessage('Program deleted.');
     setManagementError(false);
   };
 
@@ -202,7 +126,7 @@ export default function AdminUploadPage() {
       .from('subjects')
       .update({ name })
       .eq('id', subjectId)
-      .select('id, name, program_id')
+      .select('id, name')
       .single();
     setSavingItemId('');
 
@@ -214,7 +138,7 @@ export default function AdminUploadPage() {
 
     setSubjects((current) => current.map((subject) => (
       subject.id === subjectId ? { ...subject, name: data.name } : subject
-    )));
+    )).sort((left, right) => left.name.localeCompare(right.name)));
     setEditingSubjectId('');
     setManagementMessage('Course updated.');
     setManagementError(false);
@@ -302,7 +226,7 @@ export default function AdminUploadPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Admin Control Center</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Manage programs, add courses, and upload paper metadata for the student portal.
+          Add shared courses and upload paper metadata for the student portal.
         </p>
       </div>
 
@@ -313,49 +237,13 @@ export default function AdminUploadPage() {
       )}
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="space-y-6">
-          <form onSubmit={handleAddProgram} className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-            <div className="mb-4 flex items-center gap-2 text-slate-100">
-              <FolderOpen className="h-4 w-4 text-lime-400" />
-              <h2 className="text-base font-semibold">Add Program</h2>
-            </div>
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={programName}
-                onChange={(e) => setProgramName(e.target.value)}
-                placeholder="e.g. Bachelor of Education"
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-lime-400"
-              />
-              <button type="submit" disabled={isSavingProgram} className="inline-flex items-center gap-2 rounded-lg bg-lime-400 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">
-                <Plus className="h-4 w-4" /> {isSavingProgram ? 'Saving...' : 'Add program'}
-              </button>
-            </div>
-          </form>
-
+        <div>
           <form onSubmit={handleAddCourse} className="rounded-xl border border-slate-800 bg-slate-900 p-5">
             <div className="mb-4 flex items-center gap-2 text-slate-100">
               <BookCopy className="h-4 w-4 text-lime-400" />
               <h2 className="text-base font-semibold">Add Course</h2>
             </div>
             <div className="space-y-3">
-              <select
-                required
-                value={selectedProgramId}
-                onChange={(e) => {
-                  const nextProgramId = e.target.value;
-                  setSelectedProgramId(nextProgramId);
-                  setSelectedSubjectId(subjects.find((subject) => subject.program_id === nextProgramId)?.id ?? '');
-                }}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-lime-400"
-              >
-                <option value="">Select program</option>
-                {programs.map((program) => (
-                  <option key={program.id} value={program.id}>
-                    {program.name}
-                  </option>
-                ))}
-              </select>
               <input
                 type="text"
                 required
@@ -364,7 +252,7 @@ export default function AdminUploadPage() {
                 placeholder="e.g. Organic Chemistry"
                 className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-lime-400"
               />
-              <button type="submit" disabled={isSavingCourse || !selectedProgramId} className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:border-slate-500 disabled:opacity-50">
+              <button type="submit" disabled={isSavingCourse} className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm font-medium text-slate-100 hover:border-slate-500 disabled:opacity-50">
                 <Plus className="h-4 w-4" /> {isSavingCourse ? 'Saving...' : 'Add course'}
               </button>
             </div>
@@ -397,16 +285,7 @@ export default function AdminUploadPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs text-slate-400">Program</label>
-              <input
-                type="text"
-                readOnly
-                value={selectedProgram?.name ?? ''}
-                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-slate-400">Subject</label>
+              <label className="mb-1 block text-xs text-slate-400">Course</label>
               <select
                 required
                 value={selectedSubjectId}
@@ -414,7 +293,7 @@ export default function AdminUploadPage() {
                 className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-lime-400"
               >
                 <option value="">Select subject</option>
-                {subjects.filter((subject) => subject.program_id === selectedProgramId).map((subject) => (
+                {subjects.map((subject) => (
                   <option key={subject.id} value={subject.id}>{subject.name}</option>
                 ))}
               </select>
@@ -469,51 +348,51 @@ export default function AdminUploadPage() {
         </form>
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
-        <h2 className="mb-4 text-base font-semibold text-slate-100">Edit programs</h2>
-        <div className="space-y-3">
-          {programs.map((program) => {
-            const programSubjects = subjects.filter((subject) => subject.program_id === program.id);
+      <form onSubmit={handleAddAdministrator} className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+        <div className="mb-4 flex items-center gap-2 text-slate-100">
+          <UserPlus className="h-4 w-4 text-lime-400" />
+          <h2 className="text-base font-semibold">Add New Administrator</h2>
+        </div>
+        <p className="mb-3 text-sm text-slate-400">Authorize an email address to receive administrator access after signing up or signing in.</p>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input
+            type="email"
+            required
+            value={administratorEmail}
+            onChange={(event) => setAdministratorEmail(event.target.value)}
+            placeholder="admin@university.ac.zm"
+            aria-label="New administrator email"
+            className="min-w-0 flex-1 rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-lime-400"
+          />
+          <button type="submit" disabled={isGrantingAdministrator} className="inline-flex items-center justify-center gap-2 rounded-lg bg-lime-400 px-3 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50">
+            <UserPlus className="h-4 w-4" /> {isGrantingAdministrator ? 'Authorizing...' : 'Authorize email'}
+          </button>
+        </div>
+        {administratorMessage && (
+          <p role="status" className={`mt-3 text-sm ${administratorError ? 'text-red-300' : 'text-lime-300'}`}>
+            {administratorMessage}
+          </p>
+        )}
+      </form>
 
-            return (
-              <div key={program.id} className="rounded-lg border border-slate-800 bg-slate-950 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  {editingProgramId === program.id ? (
-                    <form
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        void handleUpdateProgram(program.id);
-                      }}
-                      className="flex min-w-0 flex-1 items-center gap-2"
-                    >
-                      <input
-                        autoFocus
-                        required
-                        value={editingProgramName}
-                        onChange={(event) => setEditingProgramName(event.target.value)}
-                        aria-label="Program name"
-                        className="min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100 outline-none focus:border-lime-400"
-                      />
-                      <button type="submit" disabled={savingItemId === program.id} title="Save program name" aria-label="Save program name" className="p-1.5 text-lime-300 hover:text-lime-200 disabled:opacity-50"><Save className="h-4 w-4" /></button>
-                      <button type="button" title="Cancel edit" aria-label="Cancel edit" onClick={() => setEditingProgramId('')} className="p-1.5 text-slate-400 hover:text-slate-100"><X className="h-4 w-4" /></button>
-                    </form>
-                  ) : (
-                    <>
-                      <p className="min-w-0 font-medium text-slate-100">{program.name}</p>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <span className="text-xs text-slate-500">{programSubjects.length} courses</span>
-                        <button type="button" title="Edit program" aria-label={`Edit ${program.name}`} onClick={() => { setEditingProgramId(program.id); setEditingProgramName(program.name); }} className="p-1.5 text-slate-400 hover:text-lime-300"><Pencil className="h-4 w-4" /></button>
-                        <button type="button" title="Delete program" aria-label={`Delete ${program.name}`} disabled={savingItemId === program.id} onClick={() => void handleDeleteProgram(program)} className="p-1.5 text-slate-400 hover:text-red-300 disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div className="mt-2 space-y-1.5">
-                  {programSubjects.length === 0 ? (
-                    <span className="text-xs text-slate-500">No courses yet</span>
-                  ) : (
-                    programSubjects.map((subject) => (
-                      <div key={subject.id} className="flex items-center justify-between gap-2 rounded-md border border-slate-800 bg-slate-900 px-2 py-1">
+      <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-base font-semibold text-slate-100">Manage courses</h2>
+          <div className="relative w-full max-w-xs">
+            <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <input
+              type="search"
+              value={courseSearch}
+              onChange={(event) => setCourseSearch(event.target.value)}
+              placeholder="Search courses"
+              aria-label="Search courses to manage"
+              className="w-full rounded-lg border border-slate-800 bg-slate-950 py-2 pl-9 pr-3 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-lime-400"
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          {filteredSubjects.map((subject) => (
+                      <div key={subject.id} className="flex items-center justify-between gap-2 rounded-md border border-slate-800 bg-slate-950 px-3 py-2">
                         {editingSubjectId === subject.id ? (
                           <form
                             onSubmit={(event) => {
@@ -543,12 +422,12 @@ export default function AdminUploadPage() {
                           </>
                         )}
                       </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          ))}
+          {filteredSubjects.length === 0 && (
+            <p className="text-sm text-slate-500">
+              {courseSearch ? 'No courses match your search.' : 'No courses added yet.'}
+            </p>
+          )}
         </div>
       </div>
     </div>

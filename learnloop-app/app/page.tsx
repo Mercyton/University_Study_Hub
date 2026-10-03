@@ -5,8 +5,8 @@ import styles from './page.module.css';
 const features = [
   {
     icon: BookOpen,
-    title: 'Program library',
-    description: 'Browse courses and exam resources by program and subject.',
+    title: 'Course library',
+    description: 'Browse shared courses and exam resources.',
   },
   {
     icon: ShieldCheck,
@@ -44,7 +44,7 @@ export default function Home() {
         <section className={styles.hero}>
           <div>
             <p className={styles.eyebrow}>Student access portal</p>
-            <h2 className={styles.heroTitle}>Learn smarter with a program-first study platform.</h2>
+            <h2 className={styles.heroTitle}>Learn smarter with a shared course library.</h2>
             <p className={styles.heroDescription}>
               Access university study material and unlock full past papers after subscription.
             </p>
@@ -62,8 +62,8 @@ export default function Home() {
               <p className={styles.accessEyebrow}>Access model</p>
               <div className={styles.accessSteps}>
                 <div className={styles.step}>
-                  <p className={styles.stepTitle}>1. Browse programs and subjects</p>
-                  <p className={styles.stepDescription}>Find study materials for your program.</p>
+                  <p className={styles.stepTitle}>1. Browse courses</p>
+                  <p className={styles.stepDescription}>Find study materials shared across programs.</p>
                 </div>
                 <div className={styles.step}>
                   <p className={styles.stepTitle}>2. Register and subscribe</p>

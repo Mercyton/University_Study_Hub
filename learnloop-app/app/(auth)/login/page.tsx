@@ -27,7 +27,20 @@ export default function LoginPage() {
       setErrorMsg('Unable to sign in with those credentials. Check the email and password, or create a new account.');
       setLoading(false);
     } else {
-      const destination = data.user?.app_metadata?.role === 'admin' ? '/admin' : '/programs';
+      let isAdmin = data.user?.app_metadata?.role === 'admin';
+      try {
+        const response = await fetch('/api/admin/claim-access', { method: 'POST' });
+        if (response.ok) {
+          const result = await response.json() as { isAdmin?: boolean };
+          if (result.isAdmin) {
+            isAdmin = true;
+            await supabase.auth.refreshSession();
+          }
+        }
+      } catch {
+        // Existing admin roles remain usable if grant claiming is unavailable.
+      }
+      const destination = isAdmin ? '/admin' : '/courses';
       router.push(destination);
     }
   };

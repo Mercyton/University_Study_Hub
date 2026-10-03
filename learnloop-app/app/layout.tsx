@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "LearnLoop", // I updated this for you based on your project
-  description: "Program-first study platform", // Updated this too
+  description: "A shared course library for university study materials",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

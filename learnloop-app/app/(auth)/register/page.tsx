@@ -55,7 +55,20 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push('/programs');
+    let destination = '/courses';
+    try {
+      const response = await fetch('/api/admin/claim-access', { method: 'POST' });
+      if (response.ok) {
+        const result = await response.json() as { isAdmin?: boolean };
+        if (result.isAdmin) {
+          destination = '/admin';
+          await supabase.auth.refreshSession();
+        }
+      }
+    } catch {
+      // The account can claim a pending grant the next time they sign in.
+    }
+    router.push(destination);
   };
 
   return (

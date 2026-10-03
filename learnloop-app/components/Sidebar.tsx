@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { CreditCard, ShieldCheck, LayoutGrid, LogOut } from 'lucide-react';
+import { CreditCard, ShieldCheck, BookOpen, LogOut } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const navItems = [
-  { href: '/programs', label: 'Programs', icon: LayoutGrid },
+  { href: '/courses', label: 'Courses', icon: BookOpen },
   { href: '/finances', label: 'Finances', icon: CreditCard },
   { href: '/admin', label: 'Admin', icon: ShieldCheck },
 ];

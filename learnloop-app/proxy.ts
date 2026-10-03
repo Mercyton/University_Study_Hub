@@ -33,12 +33,12 @@ export async function proxy(request: NextRequest) {
   }
 
   if (request.nextUrl.pathname.startsWith('/admin') && user.app_metadata?.role !== 'admin') {
-    return NextResponse.redirect(new URL('/programs', request.url));
+    return NextResponse.redirect(new URL('/courses', request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ['/programs/:path*', '/finances/:path*', '/admin/:path*', '/viewer/:path*'],
+  matcher: ['/courses/:path*', '/programs/:path*', '/finances/:path*', '/admin/:path*', '/viewer/:path*'],
 };
